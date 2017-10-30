@@ -13,7 +13,7 @@
 -module(er_coap_udp_socket).
 -behaviour(gen_server).
 
--export([start_link/0, start_link/2, get_channel/2, close/1]).
+-export([start_link/0, get_channel/2, close/1]).
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, code_change/3, terminate/2]).
 
 -record(state, {sock, chans, pool}).
@@ -21,9 +21,7 @@
 % client
 start_link() ->
     gen_server:start_link(?MODULE, [0], []).
-% server
-start_link(InPort, SupPid) ->
-    gen_server:start_link(?MODULE, [InPort, SupPid], []).
+
 
 get_channel(Pid, {PeerIP, PeerPortNo}) ->
     gen_server:call(Pid, {get_channel, {PeerIP, PeerPortNo}}).
@@ -38,27 +36,20 @@ init([InPort]) ->
     {ok, Socket} = gen_udp:open(InPort, [binary, {active, true}, {reuseaddr, true}]),
     %{ok, InPort2} = inet:port(Socket),
     %error_logger:info_msg("coap listen on *:~p~n", [InPort2]),
-    {ok, #state{sock=Socket, chans=dict:new()}};
+    {ok, #state{sock=Socket, chans=dict:new()}}.
 
-init([InPort, SupPid]) ->
-    gen_server:cast(self(), {set_pool, SupPid}),
-    init([InPort]).
 
 handle_call({get_channel, ChId}, _From, State=#state{chans=Chans}) ->
     case find_channel(ChId, Chans) of
         {ok, Pid} ->
             {reply, {ok, Pid}, State};
         undefined ->
-            {ok, _, Pid} = er_coap_channel:start_link(undefined, self(), ChId, undefined),
+            {ok, Pid} = er_coap_channel:start_link(self(), ChId),
             {reply, {ok, Pid}, store_channel(ChId, Pid, State)}
     end;
 handle_call(_Unknown, _From, State) ->
     {reply, unknown_call, State}.
 
-handle_cast({set_pool, SupPid}, State) ->
-    % calling coap_server directly from init/1 causes deadlock
-    PoolPid = er_coap_server:channel_sup(SupPid),
-    {noreply, State#state{pool=PoolPid}};
 handle_cast(shutdown, State) ->
     {stop, normal, State};
 handle_cast(Request, State) ->

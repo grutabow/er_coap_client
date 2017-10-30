@@ -12,7 +12,7 @@
 -module(er_coap_channel).
 -behaviour(gen_server).
 
--export([start_link/4]).
+-export([start_link/2]).
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, code_change/3, terminate/2]).
 -export([ping/1, send/2, send_request/3, send_message/3, send_response/3, close/1]).
 
@@ -23,8 +23,8 @@
 
 -include("coap.hrl").
 
-start_link(SupPid, SockPid, ChId, ReSup) ->
-    gen_server:start_link(?MODULE, [SupPid, SockPid, ChId, ReSup], []).
+start_link(SockPid, ChId) ->
+    gen_server:start_link(?MODULE, [SockPid, ChId], []).
 
 ping(Channel) ->
     send_message(Channel, make_ref(), #coap_message{type=con}).
