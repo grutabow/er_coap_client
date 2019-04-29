@@ -1,7 +1,6 @@
 .eunit
 .rebar
 .coap_dialyzer*
-
 .project
 .settings
 deps
@@ -17,4 +16,4 @@ examples/sample.iml
 rebar.lock
 *.iml
 *.d
-
+rebar3.crashdump

@@ -1,0 +1,7 @@
+{application, er_coap_client, [
+	{description, ""},
+	{vsn, git},
+	{modules, []},
+	{registered, []},
+	{applications, [kernel,stdlib]}
+]}.
