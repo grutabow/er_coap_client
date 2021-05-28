@@ -88,10 +88,17 @@ ack(Channel, Message) ->
     er_coap_channel:send(Channel,
         er_coap_message:ack(Message)).
 
-
 resolve_uri(Uri) ->
-    {ok, {Scheme, _UserInfo, Host, PortNo, Path, Query}} =
-        http_uri:parse(Uri, [{scheme_defaults, [{coap, ?DEFAULT_COAP_PORT}, {coaps, ?DEFAULT_COAPS_PORT}]}]),
+    #{scheme := SchemeStr, host := Host, path := Path} = Parsed = uri_string:parse(Uri),
+    Scheme = erlang:list_to_atom(SchemeStr),
+    Query = maps:get(query, Parsed, ""),
+    DefaultPortNo =
+        case Scheme of
+            coap -> ?DEFAULT_COAP_PORT;
+            coaps -> ?DEFAULT_COAPS_PORT
+        end,
+    PortNo = maps:get(port, Parsed, DefaultPortNo),
+
     {ok, PeerIP} = inet:getaddr(Host, inet),
     {Scheme, {PeerIP, PortNo}, split_path(Path), split_query(Query)}.
 
@@ -100,7 +107,8 @@ split_path([$/]) -> [];
 split_path([$/ | Path]) -> split_segments(Path, $/, []).
 
 split_query([]) -> [];
-split_query([$? | Path]) -> split_segments(Path, $&, []).
+split_query([$? | Path]) -> split_segments(Path, $&, []);
+split_query(Path) -> split_segments(Path, $&, []).
 
 split_segments(Path, Char, Acc) ->
     case string:rchr(Path, Char) of
@@ -112,7 +120,7 @@ split_segments(Path, Char, Acc) ->
     end.
 
 make_segment(Seg) ->
-    list_to_binary(http_uri:decode(Seg)).
+    list_to_binary(uri_string:percent_decode(Seg)).
 
 channel_apply(coap, ChId, Fun) ->
     {ok, Sock} = er_coap_udp_socket:start_link(),

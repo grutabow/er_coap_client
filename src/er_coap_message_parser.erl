@@ -12,7 +12,7 @@
 
 -export([decode/1, decode_type/1, encode/1, message_id/1]).
 -import(er_core_iana, [content_formats/0]).
--import(er_core_iana, [decode_enum/2, decode_enum/3, encode_enum/2, encode_enum/3]).
+-import(er_core_iana, [decode_enum/2, decode_enum/3, encode_enum/2]).
 -include("coap.hrl").
 
 -define(VERSION, 1).

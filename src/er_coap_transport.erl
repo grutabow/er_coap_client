@@ -198,7 +198,7 @@ aack_sent({timeout, await_pack}, State) ->
 timeout_after(Time, Channel, TrId, Event) ->
     erlang:send_after(Time, Channel, {timeout, TrId, Event}).
 
-handle_request(Message, #state{cid=ChId, channel=Channel, resp=ReSup, receiver=undefined}) ->
+handle_request(_Message, #state{cid=_ChId, channel=_Channel, resp=_ReSup, receiver=undefined}) ->
     error("coap client can not handle request");
 handle_request(Message, #state{cid=ChId, channel=Channel, receiver={Sender, Ref}}) ->
     %io:fwrite("~p => ~p~n", [self(), Message]),
