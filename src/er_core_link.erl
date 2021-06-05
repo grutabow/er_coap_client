@@ -12,7 +12,7 @@
 
 -export([decode/1, encode/1]).
 -import(er_core_iana, [content_formats/0]).
--import(er_core_iana, [decode_enum/2, decode_enum/3, encode_enum/2, encode_enum/3]).
+-import(er_core_iana, [encode_enum/2]).
 
 decode(Binary) when is_binary(Binary) ->
     decode(binary_to_list(Binary));
@@ -49,9 +49,9 @@ encode_link_uri(absolute, UriList) -> "</"++join_uri(UriList)++">";
 encode_link_uri(rootless, UriList) -> "<"++join_uri(UriList)++">".
 
 join_uri([Seg]) ->
-    http_uri:encode(binary_to_list(Seg));
+    emqx_http_lib:uri_encode(binary_to_list(Seg));
 join_uri([Seg|Uri]) ->
-    http_uri:encode(binary_to_list(Seg))++"/"++join_uri(Uri).
+    emqx_http_lib:uri_encode(binary_to_list(Seg))++"/"++join_uri(Uri).
 
 encode_link_param({_Any, undefined}) -> undefined;
 encode_link_param({ct, Value}) -> ";ct=" ++ content_type_to_int(Value);
